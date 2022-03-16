@@ -1,1 +1,8 @@
 https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/
+https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB6-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getDefaultExtension-%E5%92%8CgetExtension-String-name-%E6%96%B9%E6%B3%95/
+https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB5-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getActivateExtension%E6%96%B9%E6%B3%95/
+https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB4-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-SPI%E5%8A%A0%E8%BD%BD%E6%89%80%E6%9C%89%E5%AE%9E%E7%8E%B0%E7%B1%BB%E4%BF%A1%E6%81%AF/
+https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB3-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-%E7%B1%BB%E5%AE%9E%E4%BE%8B%E6%9E%84%E5%BB%BA/
+https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB2-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getAdaptiveExtension%E6%96%B9%E6%B3%95/
+https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB1-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F/
+https://blog.fushindcw.com/2022/03/16/%E6%89%A3%E5%88%86%E5%8F%A3%E8%AF%80/
