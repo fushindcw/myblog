@@ -17,13 +17,13 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"blog.dingchw.cn","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"blog.fushindcw.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
   <meta name="description" content="逻辑解析根据Activate注解来进行扩展点实现类排序实例对象，使用TreeMap来进行扩展点类进行排序保存，排序类为ActivateComparator">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Dubbo源码解读5-扩展点类ExtensionLoader&lt;T&gt; getActivateExtension方法">
-<meta property="og:url" content="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB5-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getActivateExtension%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:url" content="https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB5-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getActivateExtension%E6%96%B9%E6%B3%95/index.html">
 <meta property="og:site_name" content="半日闲">
 <meta property="og:description" content="逻辑解析根据Activate注解来进行扩展点实现类排序实例对象，使用TreeMap来进行扩展点类进行排序保存，排序类为ActivateComparator">
 <meta property="og:locale" content="zh_CN">
@@ -33,7 +33,7 @@
 <meta property="article:tag" content="dubbo2.7">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB5-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getActivateExtension%E6%96%B9%E6%B3%95/">
+<link rel="canonical" href="https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB5-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getActivateExtension%E6%96%B9%E6%B3%95/">
 
 
 <script id="page-configurations">
@@ -163,7 +163,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB5-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getActivateExtension%E6%96%B9%E6%B3%95/">
+    <link itemprop="mainEntityOfPage" href="https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB5-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getActivateExtension%E6%96%B9%E6%B3%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.png">

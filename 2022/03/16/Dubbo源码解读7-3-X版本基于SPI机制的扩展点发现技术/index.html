@@ -17,13 +17,13 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"blog.dingchw.cn","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"blog.fushindcw.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
   <meta name="description" content="框架版本dubbo 3.0.53.0版本中，在原有的ExtensionLoader之上，设计了ExtensionDirector类，用于构建类似ClassLoader一样的父子级管理器。至此，所有Dubbo接口扩展点将使用ExtensionDirector类的getExtensionLoader(Class type)方法来获取，用于替代ExtensionLoader.getExtensionLo">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Dubbo源码解读7-3.X版本基于SPI机制的扩展点发现技术">
-<meta property="og:url" content="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/index.html">
+<meta property="og:url" content="https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/index.html">
 <meta property="og:site_name" content="半日闲">
 <meta property="og:description" content="框架版本dubbo 3.0.53.0版本中，在原有的ExtensionLoader之上，设计了ExtensionDirector类，用于构建类似ClassLoader一样的父子级管理器。至此，所有Dubbo接口扩展点将使用ExtensionDirector类的getExtensionLoader(Class type)方法来获取，用于替代ExtensionLoader.getExtensionLo">
 <meta property="og:locale" content="zh_CN">
@@ -33,7 +33,7 @@
 <meta property="article:tag" content="dubbo3.0">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/">
+<link rel="canonical" href="https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/">
 
 
 <script id="page-configurations">
@@ -163,7 +163,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/">
+    <link itemprop="mainEntityOfPage" href="https://blog.fushindcw.com/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.png">
