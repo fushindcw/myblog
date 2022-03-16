@@ -121,7 +121,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">2</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">3</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -153,6 +153,91 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="半日闲">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="半日闲">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/" class="post-title-link" itemprop="url">Dubbo源码解读7-3.X版本基于SPI机制的扩展点发现技术</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-16 10:24:10 / 修改时间：10:36:14" itemprop="dateCreated datePublished" datetime="2022-03-16T10:24:10+08:00">2022-03-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index"><span itemprop="name">java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index"><span itemprop="name">框架</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/%E6%A1%86%E6%9E%B6/dubbo/" itemprop="url" rel="index"><span itemprop="name">dubbo</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="框架版本"><a href="#框架版本" class="headerlink" title="框架版本"></a>框架版本</h2><p>dubbo 3.0.5<br>3.0版本中，在原有的ExtensionLoader之上，设计了ExtensionDirector类，用于构建类似ClassLoader一样的父子级管理器。<br>至此，所有Dubbo接口扩展点将使用ExtensionDirector类的getExtensionLoader(Class<?> type)方法来获取，用于替代ExtensionLoader.getExtensionLoader(Class<?> type)（该接口目前还存在，但标记为过时调用，未来可能遗弃）。</p>
+<h2 id="一、ExtensionDirector-扩展点管理"><a href="#一、ExtensionDirector-扩展点管理" class="headerlink" title="一、ExtensionDirector 扩展点管理"></a>一、ExtensionDirector 扩展点管理</h2><p>ExtensionDirector的父子关系与ScopeModel相关，一般一个ScopeModel绑定一个ExtensionDirector。ScopeModel有三个子类，分别为FrameworkModel，ApplicationModel，ModuleModel，父子关系为FrameworkModel-&gt;ApplicationModel-&gt;ModuleModel。创建扩展点加载器的时候仿照类加载器的双亲委托机制。 </p>
+<h3 id="代码解读"><a href="#代码解读" class="headerlink" title="代码解读"></a>代码解读</h3>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -785,7 +870,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -798,7 +883,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

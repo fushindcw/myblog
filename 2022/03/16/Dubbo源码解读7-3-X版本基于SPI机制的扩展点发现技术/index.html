@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.dingchw.cn","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="框架版本dubbo 3.0.53.0版本中，在原有的ExtensionLoader之上，设计了ExtensionDirector类，用于构建类似ClassLoader一样的父子级管理器。至此，所有Dubbo接口扩展点将使用ExtensionDirector类的getExtensionLoader(Class type)方法来获取，用于替代ExtensionLoader.getExtensionLo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dubbo源码解读7-3.X版本基于SPI机制的扩展点发现技术">
+<meta property="og:url" content="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/index.html">
+<meta property="og:site_name" content="半日闲">
+<meta property="og:description" content="框架版本dubbo 3.0.53.0版本中，在原有的ExtensionLoader之上，设计了ExtensionDirector类，用于构建类似ClassLoader一样的父子级管理器。至此，所有Dubbo接口扩展点将使用ExtensionDirector类的getExtensionLoader(Class type)方法来获取，用于替代ExtensionLoader.getExtensionLo">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-16T02:24:10.000Z">
+<meta property="article:modified_time" content="2022-03-16T02:36:14.803Z">
+<meta property="article:author" content="半日闲">
+<meta property="article:tag" content="dubbo3.0">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Dubbo源码解读7-3.X版本基于SPI机制的扩展点发现技术 | 半日闲</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">半日闲</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">因过竹院逢僧话，又得浮生半日闲</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">3</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">6</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB7-3-X%E7%89%88%E6%9C%AC%E5%9F%BA%E4%BA%8ESPI%E6%9C%BA%E5%88%B6%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9%E5%8F%91%E7%8E%B0%E6%8A%80%E6%9C%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="半日闲">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="半日闲">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Dubbo源码解读7-3.X版本基于SPI机制的扩展点发现技术
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-16 10:24:10 / 修改时间：10:36:14" itemprop="dateCreated datePublished" datetime="2022-03-16T10:24:10+08:00">2022-03-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index"><span itemprop="name">java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index"><span itemprop="name">框架</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/%E6%A1%86%E6%9E%B6/dubbo/" itemprop="url" rel="index"><span itemprop="name">dubbo</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="框架版本"><a href="#框架版本" class="headerlink" title="框架版本"></a>框架版本</h2><p>dubbo 3.0.5<br>3.0版本中，在原有的ExtensionLoader之上，设计了ExtensionDirector类，用于构建类似ClassLoader一样的父子级管理器。<br>至此，所有Dubbo接口扩展点将使用ExtensionDirector类的getExtensionLoader(Class<?> type)方法来获取，用于替代ExtensionLoader.getExtensionLoader(Class<?> type)（该接口目前还存在，但标记为过时调用，未来可能遗弃）。</p>
+<h2 id="一、ExtensionDirector-扩展点管理"><a href="#一、ExtensionDirector-扩展点管理" class="headerlink" title="一、ExtensionDirector 扩展点管理"></a>一、ExtensionDirector 扩展点管理</h2><p>ExtensionDirector的父子关系与ScopeModel相关，一般一个ScopeModel绑定一个ExtensionDirector。ScopeModel有三个子类，分别为FrameworkModel，ApplicationModel，ModuleModel，父子关系为FrameworkModel-&gt;ApplicationModel-&gt;ModuleModel。创建扩展点加载器的时候仿照类加载器的双亲委托机制。 </p>
+<h3 id="代码解读"><a href="#代码解读" class="headerlink" title="代码解读"></a>代码解读</h3><p>定义三个扩展点管理范围，分别为Framework(1), Application(2), Module(3)以及无实现的Self(4)。然后框架根据不同的应用场景创建出不同范围的扩展点。权值越低的范围创建的时候，会委托其父级帮助其创建，一直到Framework级别。<br>相关代码:  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//ScopeModel.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">ScopeModel</span><span class="params">(ScopeModel parent, ExtensionScope scope)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.parent = parent;</span><br><span class="line">    <span class="built_in">this</span>.scope = scope;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">initialize</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.extensionDirector = <span class="keyword">new</span> <span class="title class_">ExtensionDirector</span>(parent != <span class="literal">null</span> ? parent.getExtensionDirector() : <span class="literal">null</span>, scope, <span class="built_in">this</span>);</span><br><span class="line">    <span class="built_in">this</span>.extensionDirector.addExtensionPostProcessor(<span class="keyword">new</span> <span class="title class_">ScopeModelAwareExtensionProcessor</span>(<span class="built_in">this</span>));</span><br><span class="line">    <span class="built_in">this</span>.beanFactory = <span class="keyword">new</span> <span class="title class_">ScopeBeanFactory</span>(parent != <span class="literal">null</span> ? parent.getBeanFactory() : <span class="literal">null</span>, extensionDirector);</span><br><span class="line">    <span class="built_in">this</span>.destroyListeners = <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;&gt;();</span><br><span class="line">    <span class="built_in">this</span>.attributes = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line">    <span class="built_in">this</span>.classLoaders = <span class="keyword">new</span> <span class="title class_">ConcurrentHashSet</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Add Framework&#x27;s ClassLoader by default</span></span><br><span class="line">    <span class="type">ClassLoader</span> <span class="variable">dubboClassLoader</span> <span class="operator">=</span> ScopeModel.class.getClassLoader();</span><br><span class="line">    <span class="keyword">if</span> (dubboClassLoader != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="built_in">this</span>.addClassLoader(dubboClassLoader);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//FrameworkModel.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">FrameworkModel</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>(<span class="literal">null</span>, ExtensionScope.FRAMEWORK);</span><br><span class="line">    <span class="built_in">this</span>.setInternalId(String.valueOf(index.getAndIncrement()));</span><br><span class="line">    <span class="comment">// register FrameworkModel instance early</span></span><br><span class="line">    <span class="keyword">synchronized</span> (globalLock) &#123;</span><br><span class="line">        allInstances.add(<span class="built_in">this</span>);</span><br><span class="line">        resetDefaultFrameworkModel();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (LOGGER.isInfoEnabled()) &#123;</span><br><span class="line">        LOGGER.info(getDesc() + <span class="string">&quot; is created&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    initialize();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//ApplicationModel.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">ApplicationModel</span><span class="params">(FrameworkModel frameworkModel, <span class="type">boolean</span> isInternal)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>(frameworkModel, ExtensionScope.APPLICATION);</span><br><span class="line">    Assert.notNull(frameworkModel, <span class="string">&quot;FrameworkModel can not be null&quot;</span>);</span><br><span class="line">    <span class="built_in">this</span>.isInternal = isInternal;</span><br><span class="line">    <span class="built_in">this</span>.frameworkModel = frameworkModel;</span><br><span class="line">    frameworkModel.addApplication(<span class="built_in">this</span>);</span><br><span class="line">    <span class="keyword">if</span> (LOGGER.isInfoEnabled()) &#123;</span><br><span class="line">        LOGGER.info(getDesc() + <span class="string">&quot; is created&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    initialize();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//ModuleModel.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">ModuleModel</span><span class="params">(ApplicationModel applicationModel, <span class="type">boolean</span> isInternal)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>(applicationModel, ExtensionScope.MODULE);</span><br><span class="line">    Assert.notNull(applicationModel, <span class="string">&quot;ApplicationModel can not be null&quot;</span>);</span><br><span class="line">    <span class="built_in">this</span>.applicationModel = applicationModel;</span><br><span class="line">    applicationModel.addModule(<span class="built_in">this</span>, isInternal);</span><br><span class="line">    <span class="keyword">if</span> (LOGGER.isInfoEnabled()) &#123;</span><br><span class="line">        LOGGER.info(getDesc() + <span class="string">&quot; is created&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    initialize();</span><br><span class="line">    Assert.notNull(serviceRepository, <span class="string">&quot;ModuleServiceRepository can not be null&quot;</span>);</span><br><span class="line">    Assert.notNull(moduleConfigManager, <span class="string">&quot;ModuleConfigManager can not be null&quot;</span>);</span><br><span class="line">    Assert.assertTrue(moduleConfigManager.isInitialized(), <span class="string">&quot;ModuleConfigManager can not be initialized&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// notify application check state</span></span><br><span class="line">    <span class="type">ApplicationDeployer</span> <span class="variable">applicationDeployer</span> <span class="operator">=</span> applicationModel.getDeployer();</span><br><span class="line">    <span class="keyword">if</span> (applicationDeployer != <span class="literal">null</span>) &#123;</span><br><span class="line">        applicationDeployer.notifyModuleChanged(<span class="built_in">this</span>, DeployState.PENDING);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//ExtensionDirector.java</span></span><br><span class="line"><span class="keyword">public</span> &lt;T&gt; ExtensionLoader&lt;T&gt; <span class="title function_">getExtensionLoader</span><span class="params">(Class&lt;T&gt; type)</span> &#123;</span><br><span class="line">    checkDestroyed();</span><br><span class="line">    <span class="keyword">if</span> (type == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Extension type == null&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!type.isInterface()) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Extension type (&quot;</span> + type + <span class="string">&quot;) is not an interface!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!withExtensionAnnotation(type)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Extension type (&quot;</span> + type +</span><br><span class="line">            <span class="string">&quot;) is not an extension, because it is NOT annotated with @&quot;</span> + SPI.class.getSimpleName() + <span class="string">&quot;!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1. find in local cache</span></span><br><span class="line">    ExtensionLoader&lt;T&gt; loader = (ExtensionLoader&lt;T&gt;) extensionLoadersMap.get(type);</span><br><span class="line"></span><br><span class="line">    <span class="type">ExtensionScope</span> <span class="variable">scope</span> <span class="operator">=</span> extensionScopeMap.get(type);</span><br><span class="line">    <span class="keyword">if</span> (scope == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="type">SPI</span> <span class="variable">annotation</span> <span class="operator">=</span> type.getAnnotation(SPI.class);</span><br><span class="line">        scope = annotation.scope();</span><br><span class="line">        extensionScopeMap.put(type, scope);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (loader == <span class="literal">null</span> &amp;&amp; scope == ExtensionScope.SELF) &#123;</span><br><span class="line">        <span class="comment">// create an instance in self scope</span></span><br><span class="line">        loader = createExtensionLoader0(type);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. find in parent</span></span><br><span class="line">    <span class="keyword">if</span> (loader == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">this</span>.parent != <span class="literal">null</span>) &#123;</span><br><span class="line">            loader = <span class="built_in">this</span>.parent.getExtensionLoader(type);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3. create it</span></span><br><span class="line">    <span class="keyword">if</span> (loader == <span class="literal">null</span>) &#123;</span><br><span class="line">        loader = createExtensionLoader(type);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> loader;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="二、LoadingStrategy（扩展点加载策略）"><a href="#二、LoadingStrategy（扩展点加载策略）" class="headerlink" title="二、LoadingStrategy（扩展点加载策略）"></a>二、LoadingStrategy（扩展点加载策略）</h2><h3 id="代码解读-1"><a href="#代码解读-1" class="headerlink" title="代码解读"></a>代码解读</h3><p>扩展点加载策略是依托于原生的SPI技术, ServiceLoader类。<br>LoadingStrategy有四个实现，分别对应四种扩展点配置的路径<br>DubboExternalLoadingStrategy: MET-INF/dubbo/external/xxxx<br>DubboInternalLoadingStrategy: MET-INF/dubbo/internal/xxxx<br>DubboLoadingStrategy: MET-INF/dubbo/xxxx<br>ServicesLoadingStrategy: MET-INF/services/xxxx<br>例子:</p>
+<blockquote>
+<p>listener=org.apache.dubbo.rpc.protocol.ProtocolListenerWrapper<br>name=实现类全路径  </p>
+</blockquote>
+<h2 id="三、扩展点相关注解"><a href="#三、扩展点相关注解" class="headerlink" title="三、扩展点相关注解"></a>三、扩展点相关注解</h2><ul>
+<li>org.apache.dubbo.common.extension.SPI</li>
+<li>org.apache.dubbo.common.extension.Adaptive</li>
+<li>org.apache.dubbo.common.extension.Activate<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> SPI &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 扩展实现名称，SPI配置文件中的每一项的name</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    String <span class="title function_">value</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 扩展点范围，与扩展点管理类相关</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    ExtensionScope <span class="title function_">scope</span><span class="params">()</span> <span class="keyword">default</span> ExtensionScope.APPLICATION;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Adaptive &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 适配类里面进行扩展点调用的配置值</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    String[] value() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Activate &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 分组</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    String[] group() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 配置值</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    String[] value() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Deprecated</span></span><br><span class="line">    String[] before() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Deprecated</span></span><br><span class="line">    String[] after() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 顺序</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">int</span> <span class="title function_">order</span><span class="params">()</span> <span class="keyword">default</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="四、扩展点加载解析-ExtensionLoader类"><a href="#四、扩展点加载解析-ExtensionLoader类" class="headerlink" title="四、扩展点加载解析 ExtensionLoader类"></a>四、扩展点加载解析 ExtensionLoader类</h2><p>类加载除了上述的差异之外，除了拥抱原生而编写的dubbo-native模块之外，和2.7的解析逻辑没有太大的出入。  </p>
+<h3 id="4-1-getExtension-name-wrap"><a href="#4-1-getExtension-name-wrap" class="headerlink" title="4.1 getExtension(name,wrap)"></a>4.1 getExtension(name,wrap)</h3><pre><code>描述: 获取扩展实现, 
+参数:
+name: 扩展实现名称  
+wrap: 是否包装, 如果是false,则只返回名称对应的扩展实现类实例对象， 如果是true， 则返回扩展点的装饰器类，并根据activate注解的order来进行排序，权值越低，则装饰得越晚，最终返回权值最低的装饰器类的实例。
+</code></pre>
+<h3 id="4-2-getAdaptiveExtension-name"><a href="#4-2-getAdaptiveExtension-name" class="headerlink" title="4.2 getAdaptiveExtension(name)"></a>4.2 getAdaptiveExtension(name)</h3><pre><code>Compiler运用动态代理技术，生成适配层的动态对象。
+描述： 获取扩展实现的适配类，在4.1的基础上，通过动态字节码技术生成$Adapter类，如果扩展点接口的方法没有用@Adaptive修饰，则抛出异常。3.0+版本为了迎合Graavl虚拟机的部署，dubbo框架提供了dubbo-native模块，应对在动态字节码技术无法使用，具体生成$Adapter实际类。
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/dubbo3-0/" rel="tag"># dubbo3.0</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB6-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getDefaultExtension-%E5%92%8CgetExtension-String-name-%E6%96%B9%E6%B3%95/" rel="prev" title="Dubbo源码解读6-扩展点类ExtensionLoader<T> getDefaultExtension()和getExtension(String name)方法">
+      <i class="fa fa-chevron-left"></i> Dubbo源码解读6-扩展点类ExtensionLoader<T> getDefaultExtension()和getExtension(String name)方法
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%86%E6%9E%B6%E7%89%88%E6%9C%AC"><span class="nav-number">1.</span> <span class="nav-text">框架版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81ExtensionDirector-%E6%89%A9%E5%B1%95%E7%82%B9%E7%AE%A1%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">一、ExtensionDirector 扩展点管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB"><span class="nav-number">2.1.</span> <span class="nav-text">代码解读</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81LoadingStrategy%EF%BC%88%E6%89%A9%E5%B1%95%E7%82%B9%E5%8A%A0%E8%BD%BD%E7%AD%96%E7%95%A5%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">二、LoadingStrategy（扩展点加载策略）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB-1"><span class="nav-number">3.1.</span> <span class="nav-text">代码解读</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%89%A9%E5%B1%95%E7%82%B9%E7%9B%B8%E5%85%B3%E6%B3%A8%E8%A7%A3"><span class="nav-number">4.</span> <span class="nav-text">三、扩展点相关注解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%89%A9%E5%B1%95%E7%82%B9%E5%8A%A0%E8%BD%BD%E8%A7%A3%E6%9E%90-ExtensionLoader%E7%B1%BB"><span class="nav-number">5.</span> <span class="nav-text">四、扩展点加载解析 ExtensionLoader类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-getExtension-name-wrap"><span class="nav-number">5.1.</span> <span class="nav-text">4.1 getExtension(name,wrap)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-getAdaptiveExtension-name"><span class="nav-number">5.2.</span> <span class="nav-text">4.2 getAdaptiveExtension(name)</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="半日闲"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">半日闲</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/fushindcw" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;fushindcw" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class=""></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">半日闲</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
