@@ -20,20 +20,20 @@
     var CONFIG = {"hostname":"blog.dingchw.cn","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="1分 不带证照乱用灯，保险标志未放置。   会车不按规定行，载物超高与超宽。    2分 交叉路口乱停车，缓行路段超借道。   校车上路违规定，上下学生乱停靠。   行车未系安全带，摩托上路未带盔。   接打电话危害多。    3分">
+  <meta name="description" content="逻辑解析 判断SPI类信息是否符合扩展点规范， 判断是否为空， 判断是否为接口， 判断是否被SPI注解修饰 在扩展点实例缓存中获取类的扩展实例，如果存在，直接返回；如果不存在，则为该SPI接口创建一个扩展点类实例，在返回。 在创建SPI接口的扩展点类实例的时候，需要判断该SPI是否为ExtensionFactory，如果是，则成员变量ObjectFactory不赋值， 否则，创建一个objectF">
 <meta property="og:type" content="article">
-<meta property="og:title" content="扣分口诀">
-<meta property="og:url" content="https://blog.dingchw.cn/2022/03/16/%E6%89%A3%E5%88%86%E5%8F%A3%E8%AF%80/index.html">
+<meta property="og:title" content="Dubbo源码解读3-扩展点类ExtensionLoader&lt;T&gt; 类实例构建">
+<meta property="og:url" content="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB3-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-%E7%B1%BB%E5%AE%9E%E4%BE%8B%E6%9E%84%E5%BB%BA/index.html">
 <meta property="og:site_name" content="半日闲">
-<meta property="og:description" content="1分 不带证照乱用灯，保险标志未放置。   会车不按规定行，载物超高与超宽。    2分 交叉路口乱停车，缓行路段超借道。   校车上路违规定，上下学生乱停靠。   行车未系安全带，摩托上路未带盔。   接打电话危害多。    3分">
+<meta property="og:description" content="逻辑解析 判断SPI类信息是否符合扩展点规范， 判断是否为空， 判断是否为接口， 判断是否被SPI注解修饰 在扩展点实例缓存中获取类的扩展实例，如果存在，直接返回；如果不存在，则为该SPI接口创建一个扩展点类实例，在返回。 在创建SPI接口的扩展点类实例的时候，需要判断该SPI是否为ExtensionFactory，如果是，则成员变量ObjectFactory不赋值， 否则，创建一个objectF">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-03-16T01:25:22.000Z">
-<meta property="article:modified_time" content="2022-03-16T01:44:14.157Z">
+<meta property="article:published_time" content="2022-03-16T02:02:38.000Z">
+<meta property="article:modified_time" content="2022-03-16T02:08:55.297Z">
 <meta property="article:author" content="半日闲">
-<meta property="article:tag" content="科目一">
+<meta property="article:tag" content="dubbo2.7">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://blog.dingchw.cn/2022/03/16/%E6%89%A3%E5%88%86%E5%8F%A3%E8%AF%80/">
+<link rel="canonical" href="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB3-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-%E7%B1%BB%E5%AE%9E%E4%BE%8B%E6%9E%84%E5%BB%BA/">
 
 
 <script id="page-configurations">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>扣分口诀 | 半日闲</title>
+  <title>Dubbo源码解读3-扩展点类ExtensionLoader<T> 类实例构建 | 半日闲</title>
   
 
 
@@ -163,7 +163,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://blog.dingchw.cn/2022/03/16/%E6%89%A3%E5%88%86%E5%8F%A3%E8%AF%80/">
+    <link itemprop="mainEntityOfPage" href="https://blog.dingchw.cn/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB3-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-%E7%B1%BB%E5%AE%9E%E4%BE%8B%E6%9E%84%E5%BB%BA/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.png">
@@ -176,7 +176,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          扣分口诀
+          Dubbo源码解读3-扩展点类ExtensionLoader<T> 类实例构建
         </h1>
 
         <div class="post-meta">
@@ -187,7 +187,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2022-03-16 09:25:22 / 修改时间：09:44:14" itemprop="dateCreated datePublished" datetime="2022-03-16T09:25:22+08:00">2022-03-16</time>
+              <time title="创建时间：2022-03-16 10:02:38 / 修改时间：10:08:55" itemprop="dateCreated datePublished" datetime="2022-03-16T10:02:38+08:00">2022-03-16</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -195,15 +195,15 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%A9%BE%E8%80%83/" itemprop="url" rel="index"><span itemprop="name">驾考</span></a>
+                  <a href="/categories/java/" itemprop="url" rel="index"><span itemprop="name">java</span></a>
                 </span>
                   ，
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%A9%BE%E8%80%83/%E7%A7%91%E7%9B%AE%E4%B8%80/" itemprop="url" rel="index"><span itemprop="name">科目一</span></a>
+                  <a href="/categories/java/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index"><span itemprop="name">框架</span></a>
                 </span>
                   ，
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%A9%BE%E8%80%83/%E7%A7%91%E7%9B%AE%E4%B8%80/%E5%8F%A3%E8%AF%80/" itemprop="url" rel="index"><span itemprop="name">口诀</span></a>
+                  <a href="/categories/java/%E6%A1%86%E6%9E%B6/dubbo/" itemprop="url" rel="index"><span itemprop="name">dubbo</span></a>
                 </span>
             </span>
 
@@ -218,38 +218,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="1分"><a href="#1分" class="headerlink" title="1分"></a>1分</h2><ul>
-<li>不带证照乱用灯，保险标志未放置。  </li>
-<li>会车不按规定行，载物超高与超宽。  </li>
-</ul>
-<h2 id="2分"><a href="#2分" class="headerlink" title="2分"></a>2分</h2><ul>
-<li>交叉路口乱停车，缓行路段超借道。  </li>
-<li>校车上路违规定，上下学生乱停靠。  </li>
-<li>行车未系安全带，摩托上路未带盔。  </li>
-<li>接打电话危害多。  </li>
-</ul>
-<h2 id="3分"><a href="#3分" class="headerlink" title="3分"></a>3分</h2><ul>
-<li>车辆体检未定期，高速路上低速行。  </li>
-<li>两成以下超员载，三成以下超物载。  </li>
-<li>禁入高速偏驶入，客货车辆超时速。  </li>
-<li>人行横道不让路，不按规定车逆行。  </li>
-<li>超车逆行不让道，牵引挂车未规定。  </li>
-<li>故障事故不警告，违反标志和标线。</li>
-</ul>
-<h2 id="6分"><a href="#6分" class="headerlink" title="6分"></a>6分</h2><ul>
-<li>违反交通信号灯，暂扣期间仍行驶。  </li>
-<li>营运客车和校车，超员超速低两成。  </li>
-<li>应急车道违法占，低能见度违规行。  </li>
-<li>化学易爆无警示，危险物品超时速。  </li>
-<li>校车来了不避让，补领驾照还期满。</li>
-</ul>
-<h2 id="12分"><a href="#12分" class="headerlink" title="12分"></a>12分</h2><ul>
-<li>车型不符用他照，饮酒驾驶事故逃。  </li>
-<li>校车载人超两成，告诉路上超二零。  </li>
-<li>载客载物超疲劳，无牌遮挡还污损。  </li>
-<li>高速路上违规停，倒车逆行和穿越。  </li>
-<li>行驶车速超五成，驾驶校车竟无证。  </li>
-</ul>
+        <h3 id="逻辑解析"><a href="#逻辑解析" class="headerlink" title="逻辑解析"></a>逻辑解析</h3><ol>
+<li>判断SPI类信息是否符合扩展点规范， 判断是否为空， 判断是否为接口， 判断是否被SPI注解修饰</li>
+<li>在扩展点实例缓存中获取类的扩展实例，如果存在，直接返回；如果不存在，则为该SPI接口创建一个扩展点类实例，在返回。</li>
+<li>在创建SPI接口的扩展点类实例的时候，需要判断该SPI是否为ExtensionFactory，如果是，则成员变量ObjectFactory不赋值， 否则，创建一个objectFactory的适配实例 <a href="/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB2-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getAdaptiveExtension%E6%96%B9%E6%B3%95/">实例化过程</a>。<h3 id="相关代码"><a href="#相关代码" class="headerlink" title="相关代码"></a>相关代码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; ExtensionLoader&lt;T&gt; <span class="title function_">getExtensionLoader</span><span class="params">(Class&lt;T&gt; type)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (type == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Extension type == null&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!type.isInterface()) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Extension type (&quot;</span> + type + <span class="string">&quot;) is not an interface!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!withExtensionAnnotation(type)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Extension type (&quot;</span> + type +</span><br><span class="line">                <span class="string">&quot;) is not an extension, because it is NOT annotated with @&quot;</span> + SPI.class.getSimpleName() + <span class="string">&quot;!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//如果存在，直接返回，如果不存在，创建一个再返回</span></span><br><span class="line">    ExtensionLoader&lt;T&gt; loader = (ExtensionLoader&lt;T&gt;) EXTENSION_LOADERS.get(type);</span><br><span class="line">    <span class="keyword">if</span> (loader == <span class="literal">null</span>) &#123;</span><br><span class="line">        EXTENSION_LOADERS.putIfAbsent(type, <span class="keyword">new</span> <span class="title class_">ExtensionLoader</span>&lt;T&gt;(type));</span><br><span class="line">        loader = (ExtensionLoader&lt;T&gt;) EXTENSION_LOADERS.get(type);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> loader;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//实例化</span></span><br><span class="line"><span class="keyword">private</span> <span class="title function_">ExtensionLoader</span><span class="params">(Class&lt;?&gt; type)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.type = type;</span><br><span class="line">    objectFactory =</span><br><span class="line">            (type == ExtensionFactory.class ? <span class="literal">null</span> : ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
 
     </div>
 
@@ -259,7 +232,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/%E7%A7%91%E7%9B%AE%E4%B8%80/" rel="tag"># 科目一</a>
+              <a href="/tags/dubbo2-7/" rel="tag"># dubbo2.7</a>
           </div>
 
         
@@ -267,10 +240,13 @@
 
         
     <div class="post-nav">
-      <div class="post-nav-item"></div>
       <div class="post-nav-item">
-    <a href="/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB1-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F/" rel="next" title="Dubbo源码解读1-扩展点类ExtensionLoader<T> 成员变量">
-      Dubbo源码解读1-扩展点类ExtensionLoader<T> 成员变量 <i class="fa fa-chevron-right"></i>
+    <a href="/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB2-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-getAdaptiveExtension%E6%96%B9%E6%B3%95/" rel="prev" title="Dubbo源码解读2-扩展点类ExtensionLoader<T> getAdaptiveExtension方法">
+      <i class="fa fa-chevron-left"></i> Dubbo源码解读2-扩展点类ExtensionLoader<T> getAdaptiveExtension方法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/03/16/Dubbo%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB4-%E6%89%A9%E5%B1%95%E7%82%B9%E7%B1%BBExtensionLoader-T-SPI%E5%8A%A0%E8%BD%BD%E6%89%80%E6%9C%89%E5%AE%9E%E7%8E%B0%E7%B1%BB%E4%BF%A1%E6%81%AF/" rel="next" title="Dubbo源码解读4-扩展点类ExtensionLoader<T> SPI加载所有实现类信息">
+      Dubbo源码解读4-扩展点类ExtensionLoader<T> SPI加载所有实现类信息 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -330,7 +306,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%E5%88%86"><span class="nav-number">1.</span> <span class="nav-text">1分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2%E5%88%86"><span class="nav-number">2.</span> <span class="nav-text">2分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3%E5%88%86"><span class="nav-number">3.</span> <span class="nav-text">3分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6%E5%88%86"><span class="nav-number">4.</span> <span class="nav-text">6分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12%E5%88%86"><span class="nav-number">5.</span> <span class="nav-text">12分</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E8%A7%A3%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">逻辑解析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E4%BB%A3%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">相关代码</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
