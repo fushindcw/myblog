@@ -1,3 +1,4 @@
+https://blog.fushindcw.com/2023/03/17/gitlab-%E5%AE%9E%E6%88%981-gitlab-runner%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/
 https://blog.fushindcw.com/2022/05/23/Docker%E9%83%A8%E7%BD%B2Redis%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F/
 https://blog.fushindcw.com/2022/05/11/%E9%A9%BE%E8%80%83%E5%A4%87%E5%BF%98%E5%BD%95/
 https://blog.fushindcw.com/2022/04/01/2022%E5%B9%B4%E8%BF%9D%E6%B3%95%E8%AE%B0%E5%88%86%E6%96%B0%E8%A7%84/
